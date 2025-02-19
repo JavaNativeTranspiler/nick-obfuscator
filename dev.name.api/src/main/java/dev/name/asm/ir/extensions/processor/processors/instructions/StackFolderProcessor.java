@@ -23,7 +23,10 @@ public final class StackFolderProcessor extends Processor.InstructionProcessor {
             switch (node.opcode) {
                 case DUP -> {
                     switch (next.opcode) {
-                        case POP -> instructions.remove(node, next);
+                        case POP -> {
+                            node.delete();
+                            next.delete();
+                        }
                         case POP2 -> { node.delete(); next.replace(new Instruction(POP)); }
                         case SWAP -> next.delete();
                     }

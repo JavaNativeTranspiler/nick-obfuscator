@@ -1,6 +1,8 @@
 package dev.name.transformer;
 
 import dev.name.transformer.transformers.deobf.generic.Folder;
+import dev.name.transformer.transformers.obf.flow.LoopMutationTransformer;
+import dev.name.transformer.transformers.obf.flow.table.DispatchTableTransformer;
 import dev.name.transformer.transformers.obf.hash.HashTransformer;
 import dev.name.transformer.transformers.obf.string.StringEncryptionTransformer;
 import dev.name.util.java.ClassPool;
@@ -15,20 +17,13 @@ public class Transformers {
     private static final Set<Transformer> transformers = new LinkedHashSet<>()
     {
         {
-            //add(new HashTransformer());
-           // add(new DispatchTableTransformer());
-            //add(new LoopMutationTransformer());
-           add(new Folder());
-            //add(new HashTransformer());
-            // add(new StringEncryptionTransformer());
-            //add(new LoopMutationTransformer());
-            //add(new CFGTest());
+            add(new Folder());
         }
     };
 
     public static void call(final Jar jar) {
         final ClassPool pool = jar.getClasses();
-        for (final Transformer transformer : transformers) {
+        for (Transformer transformer : transformers) {
             //if (!transformer.isEnabled()) continue;
             transformer.setJar(jar);
             transformer.transform(pool);

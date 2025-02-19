@@ -82,6 +82,10 @@ public final class Bytecode implements Opcodes {
         return node instanceof Constant || CONSTANTS.test(node.opcode);
     }
 
+    public static boolean isNumericalConstant(final Node node) {
+        return isConstant(node) && ((Constant) node).cst instanceof Number;
+    }
+
     public static boolean isConversion(final Node node) {
         return CONVERSIONS.test(node.opcode);
     }

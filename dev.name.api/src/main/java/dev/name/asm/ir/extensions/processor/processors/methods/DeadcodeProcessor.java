@@ -2,6 +2,7 @@ package dev.name.asm.ir.extensions.processor.processors.methods;
 
 import dev.name.asm.ir.components.Method;
 import dev.name.asm.ir.extensions.processor.Processor;
+import dev.name.asm.ir.nodes.Label;
 import dev.name.asm.ir.types.Node;
 import dev.name.util.asm.FlowAnalyzer;
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet;

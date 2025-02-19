@@ -23,6 +23,7 @@ public class Main {
     public static void main(String[] args) {
         //GUI gui  = new GUI();
         //ImGuiApplication.launch(gui);
+
         Processor.register(new JSRProcessor());
         Processor.register(new ConstantInstructionProcessor());
         Processor.register(new InstructionCleanerProcessor());
@@ -30,12 +31,12 @@ public class Main {
         Processor.register(new MethodInformationCleaner());
         Processor.register(new DeadcodeProcessor());
         Processor.register(new BadLocalProcessor());
-        //Processor.register(new LocalInitializerProcessor());
+        Processor.register(new LocalInitializerProcessor());
         Processor.register(new JunkExceptionProcessor());
         Processor.register(new FallthroughInliner());
         Processor.register(new UnusedLabelRemover());
 
-        Jar jar = Jar.read("tests\\test_unobfed.jar", 0);
+        Jar jar = Jar.read("jars\\zkm_crack.jar", 0);
         Transformers.call(jar);
         jar.export("tests\\test_obfed.jar");
         System.out.println("Successfully obfuscated " + jar.getJar().getName() + ".");

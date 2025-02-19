@@ -20,9 +20,8 @@ public class FixedInterpreter extends Interpreter<BasicValue> implements Opcodes
 
     @Override
     public BasicValue newValue(final Type type) {
-        if (type == null) {
-            return BasicValue.UNINITIALIZED_VALUE;
-        }
+        if (type == null) return BasicValue.UNINITIALIZED_VALUE;
+
         return switch (type.getSort()) {
             case Type.VOID -> null;
             case Type.BOOLEAN, Type.CHAR, Type.BYTE, Type.SHORT, Type.INT -> BasicValue.INT_VALUE;

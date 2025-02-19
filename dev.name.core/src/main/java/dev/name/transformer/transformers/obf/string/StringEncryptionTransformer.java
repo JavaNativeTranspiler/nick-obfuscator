@@ -115,7 +115,7 @@ public final class StringEncryptionTransformer extends Transformer implements Ra
             builder
                     .lload(i)
                     .dup2()
-                    .iload(5)
+                    .iload(r)
                     .iconst_m1()
                     .ixor()
                     .i2l()

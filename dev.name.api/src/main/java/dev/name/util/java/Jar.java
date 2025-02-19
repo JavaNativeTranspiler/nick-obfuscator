@@ -221,8 +221,13 @@ public class Jar {
                 }
                 return defineClass(name, buf, 0, buf.length);
             } catch (final Throwable _t) {
-                System.out.println("Failed to find library for: " + name);
-                return super.findClass(name);
+                try {
+                    System.out.println("Failed to find library for: " + name);
+                    return super.findClass(name);
+                } catch (Throwable __t) {
+                    __t.printStackTrace(System.err);
+                    return null;
+                }
             }
         }
     }

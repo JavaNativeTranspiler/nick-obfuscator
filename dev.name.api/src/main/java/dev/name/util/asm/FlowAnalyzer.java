@@ -70,7 +70,10 @@ public class FlowAnalyzer implements Opcodes {
     }
 
     private void exceptions() {
-        for (final Block block : this.method.blocks)
+        for (final Block block : this.method.blocks) {
+            jmp(block.start);
+            jmp(block.end);
             jmp(block.handler);
+        }
     }
 }

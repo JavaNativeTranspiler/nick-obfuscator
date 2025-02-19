@@ -90,20 +90,21 @@ public final class Folder extends Transformer implements Opcodes {
         Node start = range.start;
         Node next = start.next;
         next.delete();
-        next.insertBefore(start);
+        start.insertBefore(next);
+        range.end.delete();
     });
 
-    private static final Replacer COMPARE = new Replacer(Pattern.of(Bytecode::isConstant, Bytecode::isConstant, Bytecode::isCompare), range -> {
+    private static final Replacer COMPARE = new Replacer(Pattern.of(Bytecode::isNumericalConstant, Bytecode::isNumericalConstant, Bytecode::isCompare), range -> {
         range.replace(new Constant(Bytecode.cmp(range.end.opcode, ((Constant) range.start).cst, ((Constant) range.start.next).cst)));
     });
 
-    private static final Replacer JUMP_COMPARE = new Replacer(Pattern.of(Bytecode::isConstant, Bytecode::isConstant, Bytecode::isJumpCompare), range -> {
+    private static final Replacer JUMP_COMPARE = new Replacer(Pattern.of(Bytecode::isNumericalConstant, Bytecode::isNumericalConstant, Bytecode::isJumpCompare), range -> {
         boolean cmp = Bytecode.jump_cmp(range.end.opcode, ((Constant) range.start).cst, ((Constant) range.start.next).cst);
         if (cmp) range.replace(new Jump(GOTO, ((Jump) range.end).label));
         else range.clear();
     });
 
-    private static final Replacer EQUAL = new Replacer(Pattern.of(Bytecode::isConstant, Bytecode::isEqual), range ->  {
+    private static final Replacer EQUAL = new Replacer(Pattern.of(Bytecode::isNumericalConstant, Bytecode::isEqual), range ->  {
         boolean equ = Bytecode.equ(range.end.opcode, ((Constant) range.start).cst);
         if (equ) range.replace(new Jump(GOTO, ((Jump) range.end).label));
         else range.clear();
@@ -123,7 +124,7 @@ public final class Folder extends Transformer implements Opcodes {
             REPLACE_SWAP
     };
 
-    private static final Replacer LOOKUP = new Replacer(Pattern.of(Bytecode::isConstant, node -> node instanceof Lookup), range -> {
+    private static final Replacer LOOKUP = new Replacer(Pattern.of(Bytecode::isNumericalConstant, node -> node instanceof Lookup), range -> {
         Constant constant = (Constant) range.start;
         Lookup lookup = (Lookup) constant.next;
         int index = Arrays.indexOf(lookup.keys, (int) constant.cst);
@@ -132,7 +133,7 @@ public final class Folder extends Transformer implements Opcodes {
         else range.replace(lookup._default.jump(GOTO));
     });
 
-    private static final Replacer TABLE = new Replacer(Pattern.of(Bytecode::isConstant, node -> node instanceof Table), range -> {
+    private static final Replacer TABLE = new Replacer(Pattern.of(Bytecode::isNumericalConstant, node -> node instanceof Table), range -> {
         Constant constant = (Constant) range.start;
         Table table = (Table) constant.next;
         int index = ((int) constant.cst) - table.min;
@@ -140,22 +141,16 @@ public final class Folder extends Transformer implements Opcodes {
         else range.replace(table._default.jump(GOTO));
     });
 
-    private static final Replacer FALL_LOOKUP = new Replacer(Pattern.of(node -> node instanceof Lookup), range -> {
+    private static final Replacer FALL_LOOKUP = new Replacer(Pattern.of(node -> node instanceof Lookup lookup && lookup.labels.length == 0), range -> {
         Lookup lookup = (Lookup) range.start;
-
-        if (lookup.labels.length == 0) {
-            lookup.insertBefore(new Instruction(POP));
-            lookup.replace(lookup._default.jump(GOTO));
-        }
+        lookup.insertBefore(new Instruction(POP));
+        lookup.replace(lookup._default.jump(GOTO));
     });
 
-    private static final Replacer FALL_TABLE = new Replacer(Pattern.of(node -> node instanceof Table), range -> {
+    private static final Replacer FALL_TABLE = new Replacer(Pattern.of(node -> node instanceof Table table && table.labels.length == 0), range -> {
         Table table = (Table) range.start;
-
-        if (table.labels.length == 0) {
-            table.insertBefore(new Instruction(POP));
-            table.replace(table._default.jump(GOTO));
-        }
+        table.insertBefore(new Instruction(POP));
+        table.replace(table._default.jump(GOTO));
     });
 
     private static final Replacer[] SWITCHES =
@@ -174,18 +169,18 @@ public final class Folder extends Transformer implements Opcodes {
             };
 
     private static final Pattern ARITHMETIC_PATTERN = Pattern.of(
-            new Matcher(Bytecode::isConstant, "C1"),
-            new Matcher(Bytecode::isConstant, "C2"),
+            new Matcher(Bytecode::isNumericalConstant, "C1"),
+            new Matcher(Bytecode::isNumericalConstant, "C2"),
             new Matcher(Bytecode::isArithmetic, "OP")
     );
 
     private static final Pattern CONVERSION_PATTERN = Pattern.of(
-            Bytecode::isConstant,
+            Bytecode::isNumericalConstant,
             Bytecode::isConversion
     );
 
     private static final Pattern NEGATE_PATTERN = Pattern.of(
-            Bytecode::isConstant,
+            Bytecode::isNumericalConstant,
             Bytecode::isNegate
     );
 
@@ -198,7 +193,7 @@ public final class Folder extends Transformer implements Opcodes {
         Object val = ((Constant) start).cst;
         int index = ((Variable) range.end).index;
 
-        list.forEach(node -> node instanceof Variable variable && Bytecode.isLoad(variable), node -> {
+        list.forEach(node -> node instanceof Variable variable && variable.index == index && Bytecode.isLoad(variable), node -> {
             node.replace(new Constant(val));
         });
 
@@ -292,6 +287,6 @@ public final class Folder extends Transformer implements Opcodes {
     }
 
     private static boolean inlineCandidate(Method method, int index) {
-        return method.instructions.count(node -> node instanceof Variable variable && variable.index == index && Bytecode.isStore(variable)) < 2;
+        return method.instructions.count(node -> node instanceof Variable variable && variable.index == index && Bytecode.isStore(variable)) == 1 && method.instructions.count(node -> node instanceof Increment incr && incr.local.index == index) == 0;
     }
 }
