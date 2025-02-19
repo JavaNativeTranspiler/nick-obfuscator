@@ -1,0 +1,28 @@
+plugins {
+    id 'com.gradleup.shadow' version '8.3.5'
+}
+
+dependencies {
+    implementation 'dev.sim0n:iridium:1.0-SNAPSHOT'
+}
+
+jar {
+    enabled = false
+}
+
+shadowJar {
+    archiveFileName.set('test_unobfed.jar')
+    destinationDirectory = file("$projectDir.parentFile/tests")
+
+    dependencies {
+        include(dependency('dev.sim0n:iridium'))
+    }
+
+    manifest {
+        attributes('Main-Class': 'dev.sim0n.app.Main')
+    }
+}
+
+tasks.assemble {
+    dependsOn shadowJar
+}

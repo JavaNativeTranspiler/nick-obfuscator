@@ -1,0 +1,2 @@
+rootProject.name = 'rizzfuscator'
+include 'dev.name.core', 'dev.name.api', 'dev.name.test', 'dev.name.sdk', 'dev.name.transpiler', 'dev.name.virtualizer'

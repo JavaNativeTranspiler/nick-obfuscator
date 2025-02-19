@@ -1,0 +1,8 @@
+dependencies {
+    implementation project(':dev.name.api')
+    implementation("io.github.spair:imgui-java-app:1.86.11")
+}
+
+tasks.withType(JavaExec).configureEach {
+    dependsOn(":dev.name.test:assemble")
+}
